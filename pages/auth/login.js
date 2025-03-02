@@ -11,7 +11,6 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   async function handleLogin() {
@@ -19,19 +18,12 @@ const Login = () => {
       setError('Please enter both email and password')
       return
     }
-
-    setIsLoading(true)
-    setError('')
     
     try {
       await login(email, password)
       router.push('/')
     } catch (err) {
-      console.log('Error Logging In', err)
       setError('Invalid email or password. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
   }
 
 
@@ -68,7 +60,6 @@ const Login = () => {
           
           <MainButton 
             onClick={handleLogin} 
-            disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </MainButton>
@@ -205,5 +196,5 @@ const SignupLink = styled(Link)`
     text-decoration: underline;
   }
 `;
-
+}
 export default Login
