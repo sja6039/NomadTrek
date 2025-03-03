@@ -82,7 +82,6 @@ export default function Explore() {
         alert("Failed to update your visited parks. Please try again.");
       }
     };
-
     useEffect(() => {
       setParks({
         "Alaska": [
@@ -299,7 +298,7 @@ export default function Explore() {
                 ))
               }
             </StateList>
-            
+
           </Sidebar>
   
           <MapContainer>
