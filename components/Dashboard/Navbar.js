@@ -31,7 +31,7 @@ const Navbar = () => {
             <NavLink href = "/auth/signup" isActive = {router.pathname === '/auth/signup'}>Sign Up</NavLink>
           </>
         ) : (
-          <NavLink href = "#" onClick={handleLogout}>Log out</NavLink>
+          <NavLink href = "/" onClick={handleLogout}>Log out</NavLink>
         )}
 
       </NavLinks>

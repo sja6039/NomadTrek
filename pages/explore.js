@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { GoogleMap, Marker, LoadScript, InfoWindow } from '@react-google-maps/api';
 import { googleMapsApiKey } from './api/apiref'; 
 import { NPSApiKey } from './api/apiref';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db } from '@/backend/Firebase';
 
 export default function Explore() {
     const [parks, setParks] = useState({});
@@ -11,8 +14,58 @@ export default function Explore() {
     const [zoom, setZoom] = useState(4);
     const [selectedPark, setSelectedPark] = useState(null);
     const [parkActivities, setParkActivities] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState(null);
+    const [visitedParks, setVisitedParks] = useState([]);
   
+    useEffect(() => {
+      const auth = getAuth();
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        setUser(user);
+        if (user) {
+          await loadVisitedParks(user.uid);
+        } else {
+          setVisitedParks([]);
+        }
+      });
+      return () => unsubscribe();
+    }, []);
+    
+    const loadVisitedParks = async (userId) => {
+      try {
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().visitedParks) {
+          setVisitedParks(userDoc.data().visitedParks);
+        } else {
+          await setDoc(userDocRef, { visitedParks: [] }, { merge: true });
+          setVisitedParks([]);
+        }
+      } catch (error) {
+        console.error("Error loading visited parks:", error);
+        setVisitedParks([]);
+      }
+    };
+    
+    const toggleVisitedPark = async (parkCode) => {
+      try {
+        const userDocRef = doc(db, "users", user.uid);       
+        if (visitedParks.includes(parkCode)) {
+          await updateDoc(userDocRef, {
+            visitedParks: arrayRemove(parkCode)
+          });
+          setVisitedParks(prev => prev.filter(code => code !== parkCode));
+        } else {
+          await updateDoc(userDocRef, {
+            visitedParks: arrayUnion(parkCode)
+          });
+          setVisitedParks(prev => [...prev, parkCode]);
+        }
+      } catch (error) {
+        console.error("Error updating visited parks:", error);
+        alert("Failed to update your visited parks. Please try again.");
+      }
+    };
+
     useEffect(() => {
       setParks({
         "Alaska": [
@@ -121,7 +174,6 @@ export default function Explore() {
     }, []);
 
     const fetchParkActivities = async (parkCode) => {
-      setLoading(true);
       try {
         const response = await fetch(`https://developer.nps.gov/api/v1/parks?parkCode=${parkCode}&api_key=${NPSApiKey}`);
         const data = await response.json();
@@ -129,8 +181,6 @@ export default function Explore() {
       } catch (error) {
         console.error("Error fetching park activities:", error);
         setParkActivities([]);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -143,12 +193,26 @@ export default function Explore() {
         fetchParkActivities(park.parkCode);
       }
     }
+    
+    const getVisitedStats = () => {
+      if (!user) return { total: 0, percentage: 0 };  
+      const totalParks = Object.values(parks).flat().length;
+      const visitedCount = visitedParks.length;
+      const percentage = totalParks > 0 ? ((visitedCount / totalParks) * 100).toFixed(1) : 0;
+      return { total: visitedCount, percentage, totalParks };
+    };
   
     return (
       <Container>
         <Navbar /> 
         <MainContent>
           <Sidebar>
+            {user && (
+              <VisitedStats>
+                <h3>My Park Visits</h3>
+                <p>You've visited {getVisitedStats().total} out of {getVisitedStats().totalParks} parks ({getVisitedStats().percentage}%)</p>
+              </VisitedStats>
+            )}
             <StateList>
               {Object.keys(parks).length > 0 && 
                 Object.keys(parks).sort().map((state) => (
@@ -161,7 +225,25 @@ export default function Explore() {
                           onClick={() => clickPark(park)}
                           className={selectedPark && selectedPark.name === park.name ? 'selected' : ''}
                         >
-                          {park.name}
+                          <ParkItemContent>
+                            {user && (
+                              <CheckboxContainer 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleVisitedPark(park.parkCode);
+                                }}
+                                isVisited={visitedParks.includes(park.parkCode)}
+                              >
+                                <ParkCheckbox 
+                                  type="checkbox" 
+                                  checked={visitedParks.includes(park.parkCode)} 
+                                  readOnly
+                                />
+                                <CheckMark isVisited={visitedParks.includes(park.parkCode)} />
+                              </CheckboxContainer>
+                            )}
+                            <ParkName>{park.name}</ParkName>
+                          </ParkItemContent>
                         </ParkItem>
                       ))}
                     </StateParks>
@@ -186,10 +268,13 @@ export default function Explore() {
                 {Object.keys(parks).length > 0 && Object.values(parks).flat().map((park, idx) => (
                     <Marker 
                       key={idx} 
-                      position={park.location} 
+                      position={park.location}
                       title={park.name}
                       animation={selectedPark && selectedPark.name === park.name ? 2 : 0}
                       onClick={() => clickPark(park)}
+                      icon={visitedParks.includes(park.parkCode) ? {
+                        url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                      } : undefined}
                     />
                   ))
                 }
@@ -199,14 +284,21 @@ export default function Explore() {
                     position={selectedPark.location}
                     onCloseClick={() => setSelectedPark(null)}
                     options={{
-                      pixelOffset: new window.google.maps.Size(0, -10),
-                      disableAutoPan: false,
-                      maxWidth: 400
+                      pixelOffset: new window.google.maps.Size(0, -20),
+                      maxWidth: 400,
                     }}
                   >
                     <EnhancedInfoContent>
                       <ParkTitle>{selectedPark.name}</ParkTitle>
                       <ButtonContainer>
+                        {user && (
+                          <VisitButton 
+                            onClick={() => toggleVisitedPark(selectedPark.parkCode)}
+                            isVisited={visitedParks.includes(selectedPark.parkCode)}
+                          >
+                            {visitedParks.includes(selectedPark.parkCode) ? "Mark as Not Visited" : "Mark as Visited"}
+                          </VisitButton>
+                        )}
                         <NPSButton 
                           href={`https://www.nps.gov/${selectedPark.parkCode}`} 
                         >
@@ -229,10 +321,15 @@ export default function Explore() {
             <ActivitiesPanel>
               <ActivitiesHeader>
                 <h2>{selectedPark.name}</h2>
+                {user && (
+                  <VisitStatusBadge isVisited={visitedParks.includes(selectedPark.parkCode)}>
+                    {visitedParks.includes(selectedPark.parkCode) ? "✓ Visited" : "Not Visited"}
+                  </VisitStatusBadge>
+                )}
               </ActivitiesHeader>
               <ActivitiesList>
                 <h3>Available Activities</h3>
-                    {parkActivities.length > 0 ? (
+                {parkActivities.length > 0 ? (
                   <ul>
                     {parkActivities.map((activity, idx) => (
                       <ActivityItem key={idx}>
@@ -313,6 +410,80 @@ export default function Explore() {
       font-weight: bold;
     }
   `;
+
+  const ParkItemContent = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  `;
+
+  const ParkName = styled.span`
+    flex: 1;
+  `;
+
+  const CheckboxContainer = styled.div`
+    position: relative;
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    background: ${props => props.isVisited ? '#005D4B' : 'rgba(251, 255, 228, 0.3)'};
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: ${props => props.isVisited ? '#00836B' : 'rgba(251, 255, 228, 0.5)'};
+    }
+  `;
+
+  const ParkCheckbox = styled.input`
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+    cursor: pointer;
+  `;
+
+  const CheckMark = styled.span`
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    
+    &:after {
+      content: "";
+      position: absolute;
+      display: ${props => props.isVisited ? 'block' : 'none'};
+      left: 6px;
+      top: 2px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+  `;
+
+  const VisitedStats = styled.div`
+    background-color: #003D2E;
+    color: #FBFFE4;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    
+    h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  `;
   
   const MapContainer = styled.div`
     flex-grow: 1;
@@ -384,6 +555,26 @@ export default function Explore() {
     }
   `;
 
+  const VisitButton = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: ${props => props.isVisited ? '#D17A22' : '#00836B'};
+    color: #FBFFE4;
+    border: none;
+    font-weight: bold;
+    padding: 12px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: ${props => props.isVisited ? '#B05E0C' : '#00A389'};
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  `;
+
   const ActivitiesPanel = styled.div`
     width: 280px;
     background-color: #A3D1C6;
@@ -400,8 +591,8 @@ export default function Explore() {
     color: #FBFFE4;
     padding: 15px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 10px;
     
     h2 {
       margin: 0;
@@ -409,14 +600,15 @@ export default function Explore() {
     }
   `;
 
-  const CloseButton = styled.button`
-    background: none;
-    border: none;
-    color: #FBFFE4;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
+  const VisitStatusBadge = styled.div`
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: ${props => props.isVisited ? '#00836B' : '#A3D1C6'};
+    color: ${props => props.isVisited ? '#FBFFE4' : '#003D2E'};
+    align-self: flex-start;
   `;
 
   const ActivitiesList = styled.div`
@@ -452,13 +644,4 @@ export default function Explore() {
     background-color: rgba(163, 209, 198, 0.2);
     border-radius: 4px;
     text-align: center;
-  `;
-
-  const LoadingMessage = styled.div`
-    color: #003D2E;
-    padding: 15px;
-    background-color: rgba(163, 209, 198, 0.2);
-    border-radius: 4px;
-    text-align: center;
-    font-style: italic;
   `;
