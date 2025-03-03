@@ -22,7 +22,11 @@ export default function Explore() {
     const [parkActivities, setParkActivities] = useState([]);
     const [user, setUser] = useState(null);
     const [visitedParks, setVisitedParks] = useState([]);
-  
+    /*
+    used to track when user is logged in or not
+    UI has a few changes when user is logged in
+    need to load visited parks once a user is active
+    */
     useEffect(() => {
       const auth = getAuth();
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -256,6 +260,7 @@ export default function Explore() {
                 <p>You've visited {getVisitedStats().total} out of {getVisitedStats().totalParks} parks ({getVisitedStats().percentage}%)</p>
               </VisitedStats>
             )}
+
             <StateList>
               {Object.keys(parks).length > 0 && 
                 Object.keys(parks).sort().map((state) => (
@@ -294,6 +299,7 @@ export default function Explore() {
                 ))
               }
             </StateList>
+            
           </Sidebar>
   
           <MapContainer>

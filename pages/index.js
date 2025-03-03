@@ -64,6 +64,7 @@ const WelcomeInfo = styled.div`
   text-align: center;
   color: #FBFFE4;
   font: 2rem 'Roboto', sans-serif;
+  margin: 0 2rem;
 `;
 
 const FeatureSection = styled.section`

@@ -88,7 +88,9 @@ export default function GalleryPage() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [user, setUser] = useState(null);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-
+  /*
+  determines whether the user is logged in or not
+  */
   useEffect(() => {
     const auth = getAuth();
     setUser(auth.currentUser);
@@ -98,7 +100,6 @@ export default function GalleryPage() {
     fetchImages();
     return () => unsubscribe();
   }, [selectedPark]);
-
   /*
   fetches all images from firebase storage and captions from firestore.
   filters them so the newest images are displayed first.
