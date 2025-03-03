@@ -1,3 +1,9 @@
+/*
+This page includes both of my APIS displys a map where you can find the locations of parks with markers.
+A list of all 63 national parks will be displayed on the side where the user when signed in can mark the parks they have visited.
+When clicking a park it will take you to that marker, give a link to the website, give directions, and show activities available at that park.
+Dynamic map that will show the markers turned green once visited
+*/
 import { styled } from 'styled-components'
 import Navbar from "@/components/Dashboard/Navbar"
 import React, { useState, useEffect } from 'react';

@@ -1,3 +1,8 @@
+/*
+Navbar to be imported to each page of the applicaiton
+Will have links to all tabs highlighting what path your currently on.
+Will have login/singup switch to log out when a user is actively logged in.
+*/
 import React from 'react';
 import styled from 'styled-components';
 import Link from 'next/link'

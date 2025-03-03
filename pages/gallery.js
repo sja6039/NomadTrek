@@ -1,3 +1,9 @@
+/*
+This page will display user uploaded images and captions. 
+You can search for specific park images and view just that park.
+Images and parks are displayed in a card format for easy viewing.
+You can only upload your own images when you are logged in as a user.
+*/
 import { useState, useEffect } from 'react';
 import { styled } from 'styled-components';
 import { storage, db } from '@/backend/Firebase';
@@ -82,7 +88,7 @@ export default function GalleryPage() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [user, setUser] = useState(null);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  
+
   useEffect(() => {
     const auth = getAuth();
     setUser(auth.currentUser);
@@ -92,7 +98,7 @@ export default function GalleryPage() {
     fetchImages();
     return () => unsubscribe();
   }, [selectedPark]);
-  
+
   const fetchImages = async () => {
     try {
       const imagesCollection = collection(db, 'gallery');
@@ -181,6 +187,7 @@ export default function GalleryPage() {
       <Navbar />
       <BackgroundLayer>
         <Content>
+          
           <PageHeader>
             <HeaderTitle>National Parks Gallery</HeaderTitle>
             <FilterContainer>
@@ -258,6 +265,7 @@ export default function GalleryPage() {
           )}
           
           {images.length > 0 ? (
+            
             <Gallery>
               {images.map(img => (
                 <ImageCard key={img.id}>
@@ -282,6 +290,7 @@ export default function GalleryPage() {
                 </ImageCard>
               ))}
             </Gallery>
+
           ) : (
             <NoImages>
               {selectedPark === 'All' 
