@@ -81,6 +81,7 @@ export default function GalleryPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [user, setUser] = useState(null);
+  const [expandedCaptions, setExpandedCaptions] = useState({});
   
   useEffect(() => {
     const auth = getAuth();
@@ -168,125 +169,161 @@ export default function GalleryPage() {
     }
   };
   
+  const toggleCaption = (imageId) => {
+    setExpandedCaptions(prev => ({
+      ...prev,
+      [imageId]: !prev[imageId]
+    }));
+  };
+  
   return (
     <Container>
       <Navbar />
-      <Content>
-        <Header>
-          <h1>National Parks Gallery</h1>
-          <FilterContainer>
-            <label htmlFor="parkFilter">Filter by Park: </label>
-            <Select 
-              id="parkFilter" 
-              value={selectedPark} 
-              onChange={(e) => setSelectedPark(e.target.value)}
-            >
-              <option value="All">All Parks</option>
-              {parks.map(park => (
-                <option key={park} value={park}>{park}</option>
+      <BackgroundLayer>
+        <Content>
+          <PageHeader>
+            <HeaderTitle>National Parks Gallery</HeaderTitle>
+            <FilterContainer>
+              <FilterLabel htmlFor="parkFilter">Filter by Park: </FilterLabel>
+              <Select 
+                id="parkFilter" 
+                value={selectedPark} 
+                onChange={(e) => setSelectedPark(e.target.value)}
+              >
+                <option value="All">All Parks</option>
+                {parks.map(park => (
+                  <option key={park} value={park}>{park}</option>
+                ))}
+              </Select>
+            </FilterContainer>
+          </PageHeader>
+          
+          {user && (
+            <UploadSection>
+              {!showUploadForm ? (
+                <UploadButton onClick={() => setShowUploadForm(true)}>
+                  <PlusIcon>+</PlusIcon> Add Photo
+                </UploadButton>
+              ) : (
+                <UploadForm>
+                  <UploadFormTitle>Upload a new photo</UploadFormTitle>
+                  <FormGroup>
+                    <FormLabel>Select Park:</FormLabel>
+                    <Select 
+                      value={selectedPark === 'All' ? '' : selectedPark} 
+                      onChange={(e) => setSelectedPark(e.target.value)}
+                    >
+                      <option value="">Select a park</option>
+                      {parks.map(park => (
+                        <option key={park} value={park}>{park}</option>
+                      ))}
+                    </Select>
+                  </FormGroup>
+                  <FormGroup>
+                    <FormLabel>Image:</FormLabel>
+                    <FileInput 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageChange} 
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormLabel>Caption:</FormLabel>
+                    <TextInput
+                      type="text"
+                      value={caption}
+                      onChange={(e) => setCaption(e.target.value)}
+                      placeholder="Enter a caption"
+                    />
+                  </FormGroup>
+                  
+                  {uploading ? (
+                    <ProgressContainer>
+                      <ProgressBarContainer>
+                        <ProgressBar progress={uploadProgress} />
+                      </ProgressBarContainer>
+                      <ProgressText>{uploadProgress}%</ProgressText>
+                    </ProgressContainer>
+                  ) : (
+                    <ButtonGroup>
+                      <SubmitButton onClick={handleUpload}>Upload</SubmitButton>
+                      <CancelButton onClick={() => setShowUploadForm(false)}>
+                        Cancel
+                      </CancelButton>
+                    </ButtonGroup>
+                  )}
+                </UploadForm>
+              )}
+            </UploadSection>
+          )}
+          
+          {images.length > 0 ? (
+            <Gallery>
+              {images.map(img => (
+                <ImageCard key={img.id}>
+                  <ImageContainer>
+                    <GalleryImage src={img.imageUrl} alt={img.caption} />
+                  </ImageContainer>
+                  <ImageCaption>
+                    {img.caption.length > 60 ? (
+                      <>
+                        <CaptionText expanded={expandedCaptions[img.id]}>
+                          {expandedCaptions[img.id] ? img.caption : `${img.caption.substring(0, 60)}...`}
+                        </CaptionText>
+                        <ReadMoreButton onClick={() => toggleCaption(img.id)}>
+                          {expandedCaptions[img.id] ? 'Show less' : 'Read more'}
+                        </ReadMoreButton>
+                      </>
+                    ) : (
+                      <CaptionText>{img.caption}</CaptionText>
+                    )}
+                    <ParkName>{img.park}</ParkName>
+                  </ImageCaption>
+                </ImageCard>
               ))}
-            </Select>
-          </FilterContainer>
-        </Header>
-        
-        {user && (
-          <UploadContainer>
-            {!showUploadForm ? (
-              <UploadButton onClick={() => setShowUploadForm(true)}>
-                + Add Photo
-              </UploadButton>
-            ) : (
-              <UploadForm>
-                <h3>Upload a new photo</h3>
-                <FormGroup>
-                  <label>Select Park:</label>
-                  <Select 
-                    value={selectedPark === 'All' ? '' : selectedPark} 
-                    onChange={(e) => setSelectedPark(e.target.value)}
-                  >
-                    <option value="">Select a park</option>
-                    {parks.map(park => (
-                      <option key={park} value={park}>{park}</option>
-                    ))}
-                  </Select>
-                </FormGroup>
-                <FormGroup>
-                  <label>Image:</label>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>Caption:</label>
-                  <input
-                    type="text"
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    placeholder="Enter a caption"
-                  />
-                </FormGroup>
-                
-                {uploading ? (
-                  <ProgressContainer>
-                    <ProgressBar progress={uploadProgress} />
-                    <span>{uploadProgress}%</span>
-                  </ProgressContainer>
-                ) : (
-                  <ButtonGroup>
-                    <Button onClick={handleUpload}>Upload</Button>
-                    <CancelButton onClick={() => setShowUploadForm(false)}>
-                      Cancel
-                    </CancelButton>
-                  </ButtonGroup>
-                )}
-              </UploadForm>
-            )}
-          </UploadContainer>
-        )}
-        
-        {images.length > 0 ? (
-          <Gallery>
-            {images.map(img => (
-              <ImageCard key={img.id}>
-                <img src={img.imageUrl} alt={img.caption} />
-                <ImageCaption>
-                  <p>{img.caption}</p>
-                  <small>{img.park}</small>
-                </ImageCaption>
-              </ImageCard>
-            ))}
-          </Gallery>
-        ) : (
-          <NoImages>
-            {selectedPark === 'All' 
-              ? 'No images have been uploaded yet.' 
-              : `No images for ${selectedPark} have been uploaded yet.`}
-          </NoImages>
-        )}
-      </Content>
+            </Gallery>
+          ) : (
+            <NoImages>
+              {selectedPark === 'All' 
+                ? 'No images have been uploaded yet.' 
+                : `No images for ${selectedPark} have been uploaded yet.`}
+            </NoImages>
+          )}
+        </Content>
+      </BackgroundLayer>
     </Container>
   );
 }
 
 const Container = styled.div`
+  font-family: 'Roboto', sans-serif;
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background-color: #A3D1C6;
+  color: #003D2E;
+`;
+
+const BackgroundLayer = styled.div`
+  flex: 1;
+  background-color: #A3D1C6;
+  background-image: radial-gradient(#FBFFE4, rgba(251, 255, 228, 0.8));
+  overflow-y: auto;
 `;
 
 const Content = styled.main`
   padding: 2rem;
-  flex: 1;
-  overflow-y: auto;
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
-const Header = styled.div`
+const PageHeader = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid #005D4B;
   
   @media (max-width: 768px) {
     flex-direction: column;
@@ -295,154 +332,304 @@ const Header = styled.div`
   }
 `;
 
-const FilterContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const Select = styled.select`
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-`;
-
-const Gallery = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-`;
-
-const ImageCard = styled.div`
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-  
-  img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-  }
-`;
-
-const ImageCaption = styled.div`
-  padding: 1rem;
-  background: white;
-  
-  p {
-    margin: 0 0 0.5rem 0;
-  }
-  
-  small {
-    color: #666;
-  }
-`;
-
-const NoImages = styled.div`
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-`;
-
-const UploadContainer = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const UploadButton = styled.button`
-  padding: 0.5rem 1rem;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  
-  &:hover {
-    background-color: #388e3c;
-  }
-`;
-
-const UploadForm = styled.div`
-  background-color: #f9f9f9;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  max-width: 500px;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1rem;
-  
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-  }
-  
-  input {
-    width: 100%;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-`;
-
-const Button = styled.button`
-  padding: 0.5rem 1rem;
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  
-  &:hover {
-    background-color: #1976d2;
-  }
-`;
-
-const CancelButton = styled.button`
-  padding: 0.5rem 1rem;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  
-  &:hover {
-    background-color: #d32f2f;
-  }
-`;
-
-const ProgressContainer = styled.div`
-  margin-top: 1rem;
-`;
-
-const ProgressBar = styled.div`
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+const HeaderTitle = styled.h1`
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #003D2E;
+  margin: 0;
   position: relative;
   
   &:after {
     content: '';
     position: absolute;
-    top: 0;
     left: 0;
-    height: 100%;
-    width: ${props => props.progress}%;
-    background-color: #4caf50;
-    border-radius: 4px;
-    transition: width 0.3s ease;
+    bottom: -10px;
+    width: 40px;
+    height: 4px;
+    background-color: #005D4B;
   }
+`;
+
+const FilterContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #003D2E;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+`;
+
+const FilterLabel = styled.label`
+  color: #FBFFE4;
+  font-weight: 600;
+`;
+
+const Select = styled.select`
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: none;
+  background-color: #FBFFE4;
+  color: #003D2E;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px #005D4B;
+  }
+`;
+
+const Gallery = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+`;
+
+const ImageCard = styled.div`
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 61, 46, 0.15);
+  transition: all 0.3s ease;
+  background-color: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 61, 46, 0.2);
+  }
+`;
+
+const ImageContainer = styled.div`
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const GalleryImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+  
+  ${ImageCard}:hover & {
+    transform: scale(1.05);
+  }
+`;
+
+const ImageCaption = styled.div`
+  padding: 1.2rem;
+  background: white;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  border-top: 4px solid #005D4B;
+`;
+
+const CaptionText = styled.p`
+  margin: 0 0 0.7rem 0;
+  font-size: 1.1rem;
+  color: #003D2E;
+  font-weight: 500;
+  max-height: ${props => props.expanded ? 'none' : '4.5rem'};
+  overflow: ${props => props.expanded ? 'visible' : 'hidden'};
+  text-overflow: ellipsis;
+  transition: max-height 0.3s ease;
+`;
+
+const ReadMoreButton = styled.button`
+  background: none;
+  border: none;
+  color: #005D4B;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  margin-bottom: 0.7rem;
+  
+  &:hover {
+    color: #003D2E;
+  }
+`;
+
+const ParkName = styled.small`
+  color: #005D4B;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.8rem;
+  margin-top: auto;
+`;
+
+const NoImages = styled.div`
+  text-align: center;
+  padding: 5rem 2rem;
+  color: #005D4B;
+  background-color: rgba(0, 93, 75, 0.05);
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 500;
+`;
+
+const UploadSection = styled.div`
+  margin-bottom: 3rem;
+`;
+
+const UploadButton = styled.button`
+  padding: 0.8rem 1.5rem;
+  background-color: #005D4B;
+  color: #FBFFE4;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 61, 46, 0.15);
+  
+  &:hover {
+    background-color: #003D2E;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 61, 46, 0.2);
+  }
+`;
+
+const PlusIcon = styled.span`
+  font-size: 1.4rem;
+  line-height: 1;
+`;
+
+const UploadForm = styled.div`
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  box-shadow: 0 8px 20px rgba(0, 61, 46, 0.15);
+  border-left: 6px solid #005D4B;
+`;
+
+const UploadFormTitle = styled.h3`
+  color: #003D2E;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+  
+  &:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 3px;
+    background-color: #005D4B;
+  }
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const FormLabel = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #003D2E;
+`;
+
+const TextInput = styled.input`
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: 2px solid #e0e0e0;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #005D4B;
+    box-shadow: 0 0 0 2px rgba(0, 93, 75, 0.1);
+  }
+`;
+
+const FileInput = styled.input`
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 6px;
+  background-color: rgba(0, 93, 75, 0.05);
+  font-family: inherit;
+  cursor: pointer;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+`;
+
+const Button = styled.button`
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-family: inherit;
+`;
+
+const SubmitButton = styled(Button)`
+  background-color: #005D4B;
+  color: #FBFFE4;
+  flex: 1;
+  
+  &:hover {
+    background-color: #003D2E;
+  }
+`;
+
+const CancelButton = styled(Button)`
+  background-color: transparent;
+  border: 2px solid #005D4B;
+  color: #005D4B;
+  
+  &:hover {
+    background-color: rgba(0, 93, 75, 0.1);
+  }
+`;
+
+const ProgressContainer = styled.div`
+  margin-top: 2rem;
+`;
+
+const ProgressBarContainer = styled.div`
+  height: 12px;
+  background-color: rgba(0, 93, 75, 0.1);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  position: relative;
+  overflow: hidden;
+`;
+
+const ProgressBar = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: ${props => props.progress}%;
+  background-color: #005D4B;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+`;
+
+const ProgressText = styled.span`
+  font-weight: 600;
+  color: #005D4B;
 `;

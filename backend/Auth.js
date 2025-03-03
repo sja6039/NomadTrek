@@ -1,7 +1,5 @@
 import { auth } from "./Firebase";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, signOut, GoogleAuthProvider } from "firebase/auth";
-import app from "./Firebase";
-
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail, signOut } from "firebase/auth";
 
 export const register = (email, password) => {
     return createUserWithEmailAndPassword(auth, email, password);
