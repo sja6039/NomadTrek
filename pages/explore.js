@@ -35,7 +35,11 @@ export default function Explore() {
       });
       return () => unsubscribe();
     }, []);
-    
+    /*
+    loading the parks that the user has marked as visited
+    grabs their array from the db or creates an empty one if there is none
+    works by getting a reference to the user doc and then updating the data
+    */
     const loadVisitedParks = async (userId) => {
       try {
         const userDocRef = doc(db, "users", userId);
@@ -51,7 +55,10 @@ export default function Explore() {
         setVisitedParks([]);
       }
     };
-    
+    /*
+    toggles visited and not visited parks, updates the array in firebase
+    gets the user doc refernce and then cahnges status, works for marking parks as visited or not visited
+    */
     const toggleVisitedPark = async (parkCode) => {
       try {
         const userDocRef = doc(db, "users", user.uid);       
@@ -199,7 +206,10 @@ export default function Explore() {
         ]
       });
     }, []);
-
+    /*
+    using NPS api grabs all the activites at the selected park
+    NPS api returns the park detials and then update our array to display the activities
+    */
     const fetchParkActivities = async (parkCode) => {
       try {
         const response = await fetch(`https://developer.nps.gov/api/v1/parks?parkCode=${parkCode}&api_key=${NPSApiKey}`);
@@ -210,7 +220,11 @@ export default function Explore() {
         setParkActivities([]);
       }
     };
-
+    /*
+    simple function to handle when a park is clicked
+    takes us to the pin setting a predetermind zoom
+    then fetches park activities to display
+    */
     function clickPark(park) {
       setMapCenter(park.location);
       setZoom(7.5);
@@ -220,7 +234,9 @@ export default function Explore() {
         fetchParkActivities(park.parkCode);
       }
     }
-    
+    /*
+    calcaultes the percentage of parks visited
+    */
     const getVisitedStats = () => {
       if (!user) return { total: 0, percentage: 0 };  
       const totalParks = Object.values(parks).flat().length;

@@ -99,6 +99,11 @@ export default function GalleryPage() {
     return () => unsubscribe();
   }, [selectedPark]);
 
+  /*
+  fetches all images from firebase storage and captions from firestore.
+  filters them so the newest images are displayed first.
+  collects the images from the databass.
+  */
   const fetchImages = async () => {
     try {
       const imagesCollection = collection(db, 'gallery');
@@ -116,28 +121,31 @@ export default function GalleryPage() {
       console.error('Error fetching images:', error);
     }
   };
-  
+  /*
+  grabs the image from the input used to update states
+  */
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
       setImage(e.target.files[0]);
     }
   };
-  
+  /*
+  This is the main function to handle uploading when a user submmits
+  handles validating that all fields are entered and then sets the uploading state
+  creates a unique file name to store and then tracks progress with a loading bar
+  then cleans up the form and fetches the images again for display
+  */
   const handleUpload = async () => {
     if (!image || !caption || !selectedPark || selectedPark === 'All') {
       alert('Please select an image, enter a caption, and choose a specific park');
       return;
     }
-    
     setUploading(true);
     setUploadProgress(0);
-    
     try {
       const fileName = `${Date.now()}_${image.name}`;
       const storageRef = ref(storage, `gallery/${fileName}`);
-      
       const uploadTask = uploadBytesResumable(storageRef, image);
-      
       uploadTask.on(
         'state_changed',
         (snapshot) => {
@@ -160,12 +168,10 @@ export default function GalleryPage() {
             uploaderName: user.displayName || 'Anonymous',
             timestamp: Date.now()
           });
-          
           setImage(null);
           setCaption('');
           setUploading(false);
           setShowUploadForm(false);
-          
           fetchImages();
         }
       );
@@ -174,7 +180,10 @@ export default function GalleryPage() {
       setUploading(false);
     }
   };
-  
+  /*
+  this is for images with long captions
+  makes it so it doesnt take up large parts of the page and displays a read more option.
+  */
   const toggleCaption = (imageId) => {
     setExpandedCaptions(prev => ({
       ...prev,
