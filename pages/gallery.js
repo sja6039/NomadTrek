@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { styled } from 'styled-components';
 import { storage, db } from '@/backend/Firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 import Navbar from '@/components/Dashboard/Navbar';
 
 const parks = ['Yellowstone', 'Yosemite', 'Grand Canyon', 'Great Smoky Mountains'];
 
 export default function GalleryPage() {
+
   const [selectedPark, setSelectedPark] = useState('All');
 
   const [image, setImage] = useState(null);
