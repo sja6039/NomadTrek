@@ -1,3 +1,8 @@
+/*
+Same as login page with same UI.
+Fields to enter email and password to sign up and make an account.
+Link to login page if user already has an account.
+*/
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'

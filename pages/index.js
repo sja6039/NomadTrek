@@ -2,7 +2,6 @@
 Dashboad/Landing page for the application, this is where users will first be introduced to the application and its features.
 This pages displays the title and a little slogan as well as a few statements on what the application can do.
 */
-
 import { styled } from 'styled-components'
 import Navbar from "@/components/Dashboard/Navbar"
 import React from 'react';

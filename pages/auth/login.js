@@ -1,3 +1,7 @@
+/*
+Simple login page with email and password fields. Gives a warning if email or password are wrong.
+Link to sign up page if user doesn't have an account.
+*/
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
