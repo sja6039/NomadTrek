@@ -121,9 +121,17 @@ export default function Explore() {
     }, []);
 
     const fetchParkActivities = async (parkCode) => {
-      const response = await fetch(`https://developer.nps.gov/api/v1/parks?parkCode=${parkCode}&api_key=${NPSApiKey}`);
-      const data = await response.json();
-      setParkActivities(data.data[0].activities || []);
+      setLoading(true);
+      try {
+        const response = await fetch(`https://developer.nps.gov/api/v1/parks?parkCode=${parkCode}&api_key=${NPSApiKey}`);
+        const data = await response.json();
+        setParkActivities(data.data[0].activities || []);
+      } catch (error) {
+        console.error("Error fetching park activities:", error);
+        setParkActivities([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     function clickPark(park) {
@@ -142,7 +150,6 @@ export default function Explore() {
         <MainContent>
           <Sidebar>
             <StateList>
-
               {Object.keys(parks).length > 0 && 
                 Object.keys(parks).sort().map((state) => (
                   <StateGroup key={state}>
@@ -161,7 +168,6 @@ export default function Explore() {
                   </StateGroup>
                 ))
               }
-
             </StateList>
           </Sidebar>
   
@@ -192,15 +198,27 @@ export default function Explore() {
                   <InfoWindow
                     position={selectedPark.location}
                     onCloseClick={() => setSelectedPark(null)}
+                    options={{
+                      pixelOffset: new window.google.maps.Size(0, -10),
+                      disableAutoPan: false,
+                      maxWidth: 400
+                    }}
                   >
-                    <InfoContent>
-                      <h3>{selectedPark.name}</h3>
-                      <a 
-                        href={`https://www.nps.gov/${selectedPark.parkCode}`} 
-                      >
-                        Visit NPS Website
-                      </a>
-                    </InfoContent>
+                    <EnhancedInfoContent>
+                      <ParkTitle>{selectedPark.name}</ParkTitle>
+                      <ButtonContainer>
+                        <NPSButton 
+                          href={`https://www.nps.gov/${selectedPark.parkCode}`} 
+                        >
+                          Visit Official Park Website
+                        </NPSButton>
+                        <DirectionsButton
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPark.location.lat},${selectedPark.location.lng}`}
+                        >
+                          Get Directions
+                        </DirectionsButton>
+                      </ButtonContainer>
+                    </EnhancedInfoContent>
                   </InfoWindow>
                 )}
               </GoogleMap>
@@ -211,12 +229,10 @@ export default function Explore() {
             <ActivitiesPanel>
               <ActivitiesHeader>
                 <h2>{selectedPark.name}</h2>
-                <CloseButton onClick={() => setSelectedPark(null)}>×</CloseButton>
               </ActivitiesHeader>
-              
               <ActivitiesList>
                 <h3>Available Activities</h3>
-                {parkActivities.length > 0 ? (
+                    {parkActivities.length > 0 ? (
                   <ul>
                     {parkActivities.map((activity, idx) => (
                       <ActivityItem key={idx}>
@@ -230,7 +246,6 @@ export default function Explore() {
               </ActivitiesList>
             </ActivitiesPanel>
           )}
-
         </MainContent>
       </Container>
     );
@@ -305,40 +320,73 @@ export default function Explore() {
     height: 100%;
   `;
 
-  const InfoContent = styled.div`
-    padding: 8px;
-    background-color: #A3D1C6;
-    border-radius: 4px;
-    border: 1px solid #003D2E;
+  const EnhancedInfoContent = styled.div`
+    width: 300px;
+    background-color: #FBFFE4;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 61, 46, 0.2);
+    overflow: hidden;
+    font-family: 'Roboto', sans-serif;
+    border: none;
+  `;
+
+  const ParkTitle = styled.h3`
+    margin: 0;
+    padding: 16px;
+    background-color: #003D2E;
+    color: #FBFFE4;
+    font-size: 16px;
+    text-align: center;
+  `;
+
+  const ButtonContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+  `;
+
+  const NPSButton = styled.a`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #003D2E;
+    color: #FBFFE4;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 12px 16px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
     
-    h3 {
-      margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: #003D2E;
+    &:hover {
+      background-color: #005D4B;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
+  `;
+
+  const DirectionsButton = styled.a`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #A3D1C6;
+    color: #003D2E;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
     
-    a {
-      color: #003D2E;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 12px;
-      background-color: #FBFFE4;
-      padding: 4px 8px;
-      border-radius: 4px;
-      display: inline-block;
-      transition: background-color 0.2s;
-      
-      &:hover {
-        background-color: #003D2E;
-        color: #FBFFE4;
-      }
+    &:hover {
+      background-color: #8DC1B6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
   `;
 
   const ActivitiesPanel = styled.div`
     width: 280px;
-    background-color: #FBFFE4;
+    background-color: #A3D1C6;
     color: #003D2E;
     display: flex;
     flex-direction: column;
@@ -392,10 +440,7 @@ export default function Explore() {
   const ActivityItem = styled.li`
     padding: 8px 12px;
     margin-bottom: 6px;
-    border-radius: 4px;
-    background-color: #A3D1C6;
     color: #003D2E;
-    
     &:last-child {
       margin-bottom: 0;
     }
@@ -407,4 +452,13 @@ export default function Explore() {
     background-color: rgba(163, 209, 198, 0.2);
     border-radius: 4px;
     text-align: center;
+  `;
+
+  const LoadingMessage = styled.div`
+    color: #003D2E;
+    padding: 15px;
+    background-color: rgba(163, 209, 198, 0.2);
+    border-radius: 4px;
+    text-align: center;
+    font-style: italic;
   `;
