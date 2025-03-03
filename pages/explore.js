@@ -37,7 +37,7 @@ export default function Explore() {
         if (userDoc.exists() && userDoc.data().visitedParks) {
           setVisitedParks(userDoc.data().visitedParks);
         } else {
-          await setDoc(userDocRef, { visitedParks: [] }, { merge: true });
+          await setDoc(userDocRef, { visitedParks: [] });
           setVisitedParks([]);
         }
       } catch (error) {
@@ -76,6 +76,7 @@ export default function Explore() {
           { name: "Kenai Fjords National Park", location: { lat: 59.92, lng: -149.65 }, parkCode: "kefj" },
           { name: "Kobuk Valley National Park", location: { lat: 67.33, lng: -159.12 }, parkCode: "kova" },
           { name: "Lake Clark National Park", location: { lat: 60.97, lng: -153.42 }, parkCode: "lacl" },
+          { name: "Wrangell-St. Elias National Park", location: { lat: 61.00, lng: -142.00 }, parkCode: "wrst" },
         ],
         "Arizona": [
           { name: "Grand Canyon National Park", location: { lat: 36.06, lng: -112.14 }, parkCode: "grca" },
@@ -111,6 +112,9 @@ export default function Explore() {
           { name: "Haleakalā National Park", location: { lat: 20.72, lng: -156.17 }, parkCode: "hale" },
           { name: "Hawaiʻi Volcanoes National Park", location: { lat: 19.38, lng: -155.20 }, parkCode: "havo" },
         ],
+        "Indiana": [
+          { name: "Indiana Dunes National Park", location: { lat: 41.65, lng: -87.05 }, parkCode: "indu" },
+        ],
         "Kentucky": [
           { name: "Mammoth Cave National Park", location: { lat: 37.18, lng: -86.10 }, parkCode: "maca" },
         ],
@@ -120,6 +124,12 @@ export default function Explore() {
         "Michigan": [
           { name: "Isle Royale National Park", location: { lat: 48.10, lng: -88.55 }, parkCode: "isro" },
         ],
+        "Minnesota": [
+          { name: "Voyageurs National Park", location: { lat: 48.50, lng: -92.88 }, parkCode: "voya" },
+        ],
+        "Missouri": [
+          { name: "Gateway Arch National Park", location: { lat: 38.63, lng: -90.19 }, parkCode: "jeff" },
+        ],
         "Montana": [
           { name: "Glacier National Park", location: { lat: 48.80, lng: -114.00 }, parkCode: "glac" },
         ],
@@ -128,6 +138,7 @@ export default function Explore() {
         ],
         "New Mexico": [
           { name: "Carlsbad Caverns National Park", location: { lat: 32.17, lng: -104.44 }, parkCode: "cave" },
+          { name: "White Sands National Park", location: { lat: 32.78, lng: -106.17 }, parkCode: "whsa" },
         ],
         "North Carolina / Tennessee": [
           { name: "Great Smoky Mountains National Park", location: { lat: 35.68, lng: -83.53 }, parkCode: "grsm" },
@@ -146,6 +157,7 @@ export default function Explore() {
         ],
         "South Dakota": [
           { name: "Badlands National Park", location: { lat: 43.75, lng: -102.50 }, parkCode: "badl" },
+          { name: "Wind Cave National Park", location: { lat: 43.57, lng: -103.48 }, parkCode: "wica" },
         ],
         "Texas": [
           { name: "Big Bend National Park", location: { lat: 29.25, lng: -103.25 }, parkCode: "bibe" },
@@ -158,6 +170,9 @@ export default function Explore() {
           { name: "Capitol Reef National Park", location: { lat: 38.20, lng: -111.17 }, parkCode: "care" },
           { name: "Zion National Park", location: { lat: 37.30, lng: -113.05 }, parkCode: "zion" },
         ],
+        "Virgin Islands": [
+          { name: "Virgin Islands National Park", location: { lat: 18.33, lng: -64.73 }, parkCode: "viis" },
+        ],
         "Virginia": [
           { name: "Shenandoah National Park", location: { lat: 38.53, lng: -78.35 }, parkCode: "shen" },
         ],
@@ -166,9 +181,15 @@ export default function Explore() {
           { name: "North Cascades National Park", location: { lat: 48.70, lng: -121.20 }, parkCode: "noca" },
           { name: "Olympic National Park", location: { lat: 47.97, lng: -123.50 }, parkCode: "olym" },
         ],
+        "West Virginia": [
+          { name: "New River Gorge National Park", location: { lat: 37.90, lng: -81.05 }, parkCode: "neri" },
+        ],
         "Wyoming": [
           { name: "Grand Teton National Park", location: { lat: 43.73, lng: -110.80 }, parkCode: "grte" },
           { name: "Yellowstone National Park", location: { lat: 44.60, lng: -110.50 }, parkCode: "yell" },
+        ],
+        "American Samoa": [
+          { name: "National Park of American Samoa", location: { lat: -14.25, lng: -170.68 }, parkCode: "npsa" },
         ]
       });
     }, []);

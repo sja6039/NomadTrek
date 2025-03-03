@@ -24,7 +24,6 @@ const Navbar = () => {
         <NavLink href = "/" isActive = {router.pathname === '/'}>Dashboard</NavLink>
         <NavLink href = "/gallery" isActive = {router.pathname === '/gallery'}>Gallery</NavLink>
         <NavLink href = "/explore" isActive = {router.pathname === '/explore'}>Explore Parks</NavLink>
-        <NavLink href = "/myprofile" isActive = {router.pathname === '/myprofile'}>My Profile</NavLink>
         {!user ? (
           <>
             <NavLink href = "/auth/login"isActive = {router.pathname === '/auth/login'}>Login</NavLink>
