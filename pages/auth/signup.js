@@ -28,7 +28,7 @@ const Signup = () => {
     console.log('so far so good...')
     const emailResponse = await isEmailInUse(email)
     console.log('email response', emailResponse)
-    if (emailResponse.length === 0) {
+    if (emailResponse.length > 0) {
       setError('This email is already in use')
       return false;
     }
