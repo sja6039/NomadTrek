@@ -42,16 +42,24 @@ const Signup = () => {
     }
         
     try {
+      // First validate the email format and availability
       const isValidEmail = await validateEmail()
       if (!isValidEmail) {
         return
       }
       
-      await register(email, password, setUser)
+      // Try to register
+      const response = await register(email, password, setUser)
       router.push('/')
     } catch (err) {
       console.log('Error Signing Up', err)
-      setError('An error occurred during signup. Please try again.')
+      
+      // Check if the error is related to an email already in use
+      if (err.message && err.message.includes('email-already-in-use')) {
+        setError('This email is already in use')
+      } else {
+        setError('An error occurred during signup. Please try again.')
+      }
     }
   }
 
