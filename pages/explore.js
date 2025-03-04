@@ -260,9 +260,7 @@ export default function Explore() {
                 <p>You've visited {getVisitedStats().total} out of {getVisitedStats().totalParks} parks ({getVisitedStats().percentage}%)</p>
               </VisitedStats>
             )}
-            //right bar displaying all states and their given parks
-            //fetching the parks from our list above and givng them a CheckMark
-            //checkmark gets logged to database and parks visited
+
             <StateList>
               {Object.keys(parks).length > 0 && 
                 Object.keys(parks).sort().map((state) => (
@@ -303,9 +301,7 @@ export default function Explore() {
             </StateList>
 
           </Sidebar>
-          //implementation of google maps API
-          //displaying the markers for each park
-          //As well as holding the infowindow when each park is selected
+
           <MapContainer>
             <LoadScript googleMapsApiKey={googleMapsApiKey}> 
               <GoogleMap
@@ -369,9 +365,7 @@ export default function Explore() {
               </GoogleMap>
             </LoadScript>
           </MapContainer>
-          //pulling the activies from the NPS api
-          //and then displaying them via another side bar
-          //error catch if there are no activites at a given park
+
           {selectedPark && (
             <ActivitiesPanel>
               <ActivitiesHeader>

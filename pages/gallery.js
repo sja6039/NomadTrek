@@ -197,8 +197,7 @@ export default function GalleryPage() {
       <Navbar />
       <BackgroundLayer>
         <Content>
-          //Simple page header with a filter to search up specific parks
-          //able to look up any given park and look at only those images
+
           <PageHeader>
             <HeaderTitle>National Parks Gallery</HeaderTitle>
             <FilterContainer>
@@ -215,8 +214,7 @@ export default function GalleryPage() {
               </Select>
             </FilterContainer>
           </PageHeader>
-          //upload form where user can upload images with their caption
-          // able to select a park and then shows a progress bar for the upload
+
           {user && (
             <UploadSection>
               {!showUploadForm ? (
@@ -277,8 +275,7 @@ export default function GalleryPage() {
           )}
           
           {images.length > 0 ? (
-            //gallery cards for images
-            //dispplays images and captions in a card format
+
             <Gallery>
               {images.map(img => (
                 <ImageCard key={img.id}>
