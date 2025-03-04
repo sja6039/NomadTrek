@@ -255,6 +255,7 @@ export default function Explore() {
           <Sidebar>
             {user && (
               <VisitedStats>
+                //displays the parks visited and the percentage of parks visited
                 <h3>My Park Visits</h3>
                 <p>You've visited {getVisitedStats().total} out of {getVisitedStats().totalParks} parks ({getVisitedStats().percentage}%)</p>
               </VisitedStats>
